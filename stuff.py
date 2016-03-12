@@ -1,29 +1,40 @@
+from os.path import isfile
+from json import dump, load
 import openpyxl as xl
 
-# columns
-PLOT = 0
-SPECIES = 1
-DOY = 2
-NUM_FLOWERS = 3
-YEAR = 4
-HABITAT = 5
 
+def excel_to_json(filename):
+    workbook = xl.load_workbook(filename + '.xlsx', read_only=True)
+    data_worksheet = workbook['All DATA']
 
-def read_data(filename='phenology_data_1973_2012.xlsx'):
-    wb = xl.load_workbook(filename, read_only=True)
-    ws = wb['All DATA']
+    rows = []
 
-    for row in ws.rows:
-        plot = row[PLOT].value
-        species = row[SPECIES].value
-        doy = row[DOY].value
-        num_flowers = row[NUM_FLOWERS].value
-        year = row[YEAR].value
-        habitat = row[HABITAT].value
+    for row in data_worksheet.rows:
+        plot = row[0].value
+        species = row[1].value
+        doy = row[2].value
+        num_flowers = row[3].value
+        year = row[4].value
+        habitat = row[5].value
 
         if plot == 'PLOT':
             continue  # skip title row
 
+        rows.append([plot, species, doy, num_flowers, year, habitat])
+
+    with open(filename + '.json', 'w') as outfile:
+        dump(rows, outfile)
+
+
+def read_json(filename):
+    with open(filename + '.json') as json_data:
+        return load(json_data)
+
 
 if __name__ == '__main__':
-    read_data()
+    file_name = 'phenology_data_1973_2012'
+
+    if not isfile(file_name + '.json'):
+        excel_to_json(file_name)
+
+    data = read_json(file_name)
